@@ -1,0 +1,8 @@
+name,category,description,contact,website,location,available_24_7,verified_on,source
+EXAMPLE - Emergency line (replace me),Emergency assistance,Placeholder row. Replace with your region's real emergency or crisis number.,000 000 0000,example.org,National,yes,2026-10-24,Replace with the page you checked
+EXAMPLE - Counselling line (replace me),Counselling,Placeholder row. Replace with a real listener or counselling service.,000 000 0001,example.org,National,no,2026-10-24,Replace with the page you checked
+EXAMPLE - Local counselling centre (replace me),Counselling,Placeholder row used to test the location filter.,000 000 0002,example.org,Example City,no,2026-10-24,Replace with the page you checked
+EXAMPLE - Legal aid service (replace me),Legal guidance,Placeholder row. Replace with a real legal aid or advocacy service.,000 000 0003,example.org,National,no,2026-10-24,Replace with the page you checked
+EXAMPLE - Shelter helpline (replace me),Shelter & housing,Placeholder row. Replace with a real shelter or housing service.,000 000 0004,example.org,National,yes,2026-10-24,Replace with the page you checked
+EXAMPLE - Local shelter (replace me),Shelter & housing,Placeholder row used to test the location filter.,000 000 0005,example.org,Example City,yes,2026-10-24,Replace with the page you checked
+EXAMPLE - Health service (replace me),Medical help,Placeholder row. Replace with a real clinic or health helpline.,000 000 0006,example.org,National,no,2026-10-24,Replace with the page you checked
