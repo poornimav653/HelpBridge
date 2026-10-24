@@ -3,6 +3,7 @@ from __future__ import annotations
 import html
 import hashlib
 import re
+import time
 from datetime import date
 from pathlib import Path
 
@@ -11,6 +12,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from i18n import LANGS, TEXT
+from ai_support import generate_reply
 
 APP_DIR = Path(__file__).resolve().parent
 RESOURCE_FILE = APP_DIR / "data" / "resources.csv"
@@ -252,6 +254,21 @@ st.markdown(
   --serif:'Fraunces','Noto Sans Devanagari','Noto Sans Kannada',Georgia,serif; }
 .stApp { background: var(--paper); color: var(--ink); font-family: var(--sans); }
 .stApp p, .stApp label, .stApp li, .stApp input, .stApp button, .stApp summary { font-family: var(--sans); }
+[data-testid="stChatMessage"] { background: #fff !important; border: 1px solid var(--line); border-radius: 14px; }
+[data-testid="stChatMessage"] p, [data-testid="stChatMessage"] li,
+[data-testid="stChatMessage"] span { color: var(--ink) !important; }
+[data-testid="stChatInput"] textarea,
+[data-testid="stChatInput"] textarea:focus {
+  color: var(--ink) !important;
+  -webkit-text-fill-color: var(--ink) !important;
+  caret-color: var(--ink) !important;
+  background: #fff !important;
+}
+[data-testid="stChatInput"] textarea::placeholder {
+  color: var(--muted) !important;
+  -webkit-text-fill-color: var(--muted) !important;
+  opacity: 1 !important;
+}
 [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDeployButton"], #MainMenu { display: none !important; }
 .st-key-topbar { position: sticky; top: 0; z-index: 1000; background: var(--paper); padding: .55rem 0 .45rem; margin-bottom: .6rem; border-bottom: 1px solid var(--line); }
 .st-key-topbar [data-testid="stRadio"] label p { font-weight: 600; color: var(--ink); }
@@ -945,6 +962,51 @@ else:
     nav_buttons()
 
 st.divider()
+with st.expander("💬 Chat with HelpBridge", expanded=False):
+    st.caption(
+        "In immediate danger? Call 112 if you can. Share only what feels comfortable; "
+        "please do not include names, exact addresses, or passwords. This chat gives general "
+        "support information, not therapy, medical or legal advice, or emergency service. "
+        "It is not saved after your app session, but browser history, shared devices, or "
+        "phone and network monitoring may still show your activity."
+    )
+    st.session_state.setdefault("chat_messages", [])
+    st.session_state.setdefault("chat_times", [])
+    for chat_message in st.session_state.chat_messages:
+        with st.chat_message(chat_message["role"]):
+            st.markdown(chat_message["content"])
+
+    prompt = st.chat_input("What would you like help thinking through?", key="helpbridge_chat_input")
+    if prompt:
+        prompt = prompt.strip()
+        if prompt:
+            now = time.time()
+            recent_times = [sent_at for sent_at in st.session_state.chat_times if now - sent_at < 300]
+            if len(prompt) > 1000:
+                st.warning("Please keep your message under 1000 characters.")
+            elif len(recent_times) >= 15:
+                st.warning("You've sent a lot of messages. Please wait a few minutes and try again.")
+            else:
+                st.session_state.chat_times = recent_times + [now]
+                st.session_state.chat_messages.append({"role": "user", "content": prompt})
+                with st.chat_message("user"):
+                    st.markdown(prompt)
+                with st.chat_message("assistant"):
+                    with st.spinner("Thinking…"):
+                        reply, used_fallback = generate_reply(
+                            prompt,
+                            st.session_state.chat_messages[:-1],
+                            st.session_state.get("resource_state_text", ""),
+                        )
+                    st.markdown(reply)
+                    if used_fallback:
+                        st.caption("This is basic guidance, not an AI reply. The AI may be unavailable or this may be an urgent message.")
+                st.session_state.chat_messages.append({"role": "assistant", "content": reply})
+
+    if st.session_state.chat_messages and st.button("Clear chat", key="clear_helpbridge_chat"):
+        st.session_state.chat_messages = []
+        st.rerun()
+
 with st.expander(t("privacy_title")):
     st.markdown("\n".join(f"- {point}" for point in t("privacy_points")))
 st.markdown(f'<p class="footer-note">{html.escape(t("footer"))}</p>', unsafe_allow_html=True)
